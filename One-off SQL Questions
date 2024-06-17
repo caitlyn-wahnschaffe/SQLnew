@@ -1,0 +1,25 @@
+-- Explore and analyze the students data to see how the length of stay (stay) impacts the average mental health diagnostic scores of the international students present in the study.
+SELECT stay, COUNT(*) as count_int, ROUND(AVG(todep),2) as average_phq, ROUND(AVG(tosc),2) as average_scs, ROUND(AVG(toas),2) as average_as
+FROM students 
+WHERE inter_dom = 'Inter'
+GROUP BY stay
+ORDER BY stay DESC;
+
+-- Find out how much Wholesale net revenue each product_line generated per month per warehouse in the dataset.
+SELECT product_line, 
+CASE WHEN date_part('month',date) = 6 THEN 'June'
+WHEN date_part('month',date) = 7 THEN 'July' 
+WHEN date_part('month',date) = 8 THEN 'August' 
+END as month
+,warehouse, SUM(total)-SUM(payment_fee) as net_revenue
+FROM sales
+WHERE client_type = 'Wholesale'
+group by product_line, month, warehouse
+order by product_line, month, net_revenue desc;
+
+-- Using the product_emissions table, find the number of unique companies and their total carbon footprint PCF for each industry group, filtering for the most recent year in the database. 
+SELECT industry_group, COUNT(DISTINCT company) as num_companies, ROUND(SUM(carbon_footprint_pcf),1) as total_industry_footprint
+FROM product_emissions
+WHERE year = (SELECT MAX(year) from product_emissions)
+GROUP BY industry_group
+ORDER BY total_industry_footprint desc;
