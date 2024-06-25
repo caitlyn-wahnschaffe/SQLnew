@@ -23,3 +23,20 @@ FROM product_emissions
 WHERE year = (SELECT MAX(year) from product_emissions)
 GROUP BY industry_group
 ORDER BY total_industry_footprint desc;
+
+-- What is the number of distinct countries present in the database?
+SELECT count(distinct country_name) as total_distinct_countries
+FROM international_debt
+--What country has the highest amount of debt? 
+SELECT country_name, SUM(debt) as total_debt
+FROM international_debt
+group by country_name
+ORDER BY total_debt desc
+LIMIT 1
+--What country has the lowest amount of principal repayments (indicated by the "DT.AMT.DLXF.CD" indicator code)?
+SELECT country_name, indicator_name, sum(debt) as lowest_repayment
+FROM international_debt
+WHERE indicator_code = 'DT.AMT.DLXF.CD'
+group by country_name, indicator_name
+ORDER BY lowest_repayment
+LIMIT 1
