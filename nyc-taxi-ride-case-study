@@ -1,0 +1,32 @@
+-- Calculate how many YellowTripData records have each type of error discovered during EDA.
+SELECT
+	COUNT (CASE WHEN PickupDate > getdate() THEN 1 END) AS 'FuturePickup',
+	COUNT (CASE WHEN DropOffDate > getdate() THEN 1 END) AS 'FutureDropOff',
+	COUNT (CASE WHEN PickupDate > DropOffDate THEN 1 END) AS 'PickupBeforeDropoff',
+	COUNT (CASE WHEN TripDistance = 0 THEN 1 END) AS 'ZeroTripDistance'  
+FROM YellowTripData;
+-- Create a stored procedure that will apply mean imputation to the YellowTripData records with an incorrect TripDistance of zero. The average trip distance variable should have a precision of 18 and 4 decimal places.
+CREATE PROCEDURE dbo.cuspimputetripdistancemean
+AS
+BEGIN
+DECLARE @AvgTripDistance AS numeric (18,4)
+
+SELECT @AvgTripDistance = Avg(TRIPDISTANCE) 
+FROM YellowTripData
+WHERE TRIPDISTANCE > 0
+
+UPDATE YellowTripData
+SET TRIPDISTANCE =  @AvgTripDistance
+WHERE TRIPDISTANCE = 0
+END;
+-- Create a function named dbo.GetTripDistanceHotDeck that returns a TripDistance value via Hot Deck methodology. TripDistance should have a precision of 18 and 4 decimal places.
+CREATE FUNCTION dbo.GetTripDistanceHotDeck()
+returns NUMERIC(18,4)
+AS 
+BEGIN
+RETURN
+	(Select TOP 1 TripDistance
+	FROM YellowTripData
+	TABLESAMPLE(1000 rows)
+	where TripDistance >  0)
+END;
