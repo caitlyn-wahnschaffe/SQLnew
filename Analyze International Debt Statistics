@@ -1,0 +1,49 @@
+-- What is the number of distinct countries present in the database?
+SELECT
+COUNT(Distinct country_name) as total_distinct_countries
+FROM international_debt 
+
+-- What country has the highest amount of debt?
+SELECT country_name,
+SUM(debt) as total_debt
+FROM international_debt
+group by country_name
+ORDER BY SUM(debt) desc
+LIMIT 1
+
+-- What country has the lowest amount of principal repayments (indicated by the "DT.AMT.DLXF.CD" indicator code)? 
+SELECT country_name
+,indicator_name
+,SUM(debt) as lowest_repayment
+FROM international_debt
+WHERE indicator_code = 'DT.AMT.DLXF.CD'
+group by country_name, indicator_name
+ORDER BY lowest_repayment 
+limit 1
+
+--How much debt is Camaros in?
+SELECT country_name, SUM(debt)
+FROM international_debt
+WHERE country_name = 'Comoros'
+group by country_name
+
+-- How many countries are considered to be in 'extreme debt', 'high debt', 'medium debt', and 'low debt'?
+SELECT debt_categories,
+CASE 
+WHEN debt_categories = 'extreme debt' THEN COUNT(debt_categories)
+WHEN debt_categories = 'high debt' THEN COUNT(debt_categories)
+WHEN debt_categories = 'medium debt' THEN COUNT(debt_categories)
+WHEN debt_categories = 'low debt' THEN COUNT(debt_categories)
+END AS country_count
+FROM (SELECT country_name,
+CASE 
+WHEN SUM(debt) >= 100000000000 THEN 'extreme debt'
+WHEN SUM(debt) >= 10000000000 THEN 'high debt'
+WHEN SUM(debt) >= 1000000000 THEN 'medium debt'
+WHEN SUM(debt) < 1000000000 THEN 'low debt'
+END as debt_categories
+FROM international_debt 
+group by country_name
+) as newtable
+group by debt_categories
+order by country_count desc
